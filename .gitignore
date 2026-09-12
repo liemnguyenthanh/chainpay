@@ -1,0 +1,16 @@
+node_modules/
+dist/
+.next/
+.turbo/
+coverage/
+.env
+.env.*
+!.env.example
+*.tsbuildinfo
+.DS_Store
+*.log
+
+# Local browser test artifacts and development TLS keys
+playwright-report/
+test-results/
+certificates/

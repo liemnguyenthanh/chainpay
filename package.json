@@ -1,0 +1,37 @@
+{
+  "name": "chainpay-mini",
+  "private": true,
+  "packageManager": "pnpm@9.15.4",
+  "engines": {
+    "node": ">=22 <25"
+  },
+  "scripts": {
+    "dev": "turbo run dev",
+    "build": "turbo run build",
+    "lint": "turbo run lint",
+    "typecheck": "turbo run typecheck",
+    "test": "turbo run test",
+    "format": "prettier --write .",
+    "format:check": "prettier --check .",
+    "prepare": "husky",
+    "db:migrate": "pnpm --filter @chainpay/database build && pnpm --filter @chainpay/database migrate",
+    "db:seed": "pnpm --filter @chainpay/database build && pnpm --filter @chainpay/database seed",
+    "db:benchmark": "pnpm --filter @chainpay/database build && pnpm --filter @chainpay/database benchmark",
+    "perf:api": "pnpm exec turbo run build --filter=@chainpay/api && node apps/api/scripts/performance.cjs"
+  },
+  "devDependencies": {
+    "@eslint/js": "^9.39.0",
+    "@types/node": "^22.0.0",
+    "eslint": "^9.39.0",
+    "globals": "^16.0.0",
+    "husky": "^9.1.7",
+    "lint-staged": "^16.0.0",
+    "prettier": "^3.0.0",
+    "turbo": "^2.10.12",
+    "typescript": "~5.9.3",
+    "typescript-eslint": "^8.70.0"
+  },
+  "lint-staged": {
+    "*": "prettier --write --ignore-unknown"
+  }
+}

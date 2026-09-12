@@ -1,0 +1,32 @@
+{
+  "name": "@chainpay/web",
+  "version": "0.0.0",
+  "private": true,
+  "scripts": {
+    "dev": "next dev --port 3000",
+    "build": "next build",
+    "start": "next start --port 3000",
+    "lint": "eslint . --max-warnings 0",
+    "typecheck": "next typegen && tsc --noEmit",
+    "test": "playwright test",
+    "dev:https": "next dev --hostname localhost --port 3000 --experimental-https"
+  },
+  "dependencies": {
+    "@tanstack/react-query": "^5",
+    "next": "^16.0.0",
+    "react": "^19.2.0",
+    "react-dom": "^19.2.0",
+    "viem": "^2",
+    "wagmi": "^2",
+    "@chainpay/shared": "workspace:*"
+  },
+  "devDependencies": {
+    "@playwright/test": "^1.63.0",
+    "@types/node": "^22.0.0",
+    "@types/react": "^19.0.0",
+    "@types/react-dom": "^19.0.0",
+    "eslint": "^9.0.0",
+    "eslint-config-next": "^16.0.0",
+    "typescript": "^5.9.0"
+  }
+}

@@ -1,0 +1,8 @@
+node_modules
+dist
+.next
+.turbo
+coverage
+pnpm-lock.yaml
+chainpay-mini-vibe-coding-guide.md
+**/next-env.d.ts

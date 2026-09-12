@@ -1,0 +1,43 @@
+{
+  "$schema": "https://turbo.build/schema.json",
+  "tasks": {
+    "dev": {
+      "cache": false,
+      "persistent": true
+    },
+    "build": {
+      "dependsOn": ["^build"],
+      "outputs": ["dist/**", ".next/**", "!.next/cache/**"]
+    },
+    "lint": {
+      "dependsOn": ["^build"]
+    },
+    "typecheck": {
+      "dependsOn": ["^build"]
+    },
+    "test": {
+      "dependsOn": ["build"],
+      "outputs": [],
+      "cache": false
+    },
+    "@chainpay/web#test": {
+      "dependsOn": ["build", "@chainpay/api#build", "@chainpay/worker#build"],
+      "outputs": [],
+      "cache": false
+    }
+  },
+  "globalPassThroughEnv": [
+    "DATABASE_URL",
+    "TEST_DATABASE_URL",
+    "MERCHANT_ORIGIN",
+    "DEMO_MERCHANT_PASSWORD",
+    "DEMO_RECEIVER_ADDRESS",
+    "NODE_ENV",
+    "REDIS_URL",
+    "TEST_REDIS_URL",
+    "BASE_SEPOLIA_RPC_URL",
+    "BERACHAIN_RPC_URL",
+    "VERIFY_CONFIRMATIONS"
+  ],
+  "globalEnv": ["API_INTERNAL_ORIGIN"]
+}
