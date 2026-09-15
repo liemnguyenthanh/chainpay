@@ -4,6 +4,8 @@ import { SessionService } from './session.service';
 @Controller('merchant/session')
 export class SessionController {
   constructor(private readonly access: SessionService) {}
+  private readonly cookieSameSite =
+    process.env.NODE_ENV === 'production' ? 'none' : 'strict';
   @Post()
   async login(
     @Body() body: unknown,
@@ -15,7 +17,7 @@ export class SessionController {
     res.cookie(this.access.cookieName, token, {
       httpOnly: true,
       secure: process.env.NODE_ENV === 'production',
-      sameSite: 'strict',
+      sameSite: this.cookieSameSite,
       path: '/v1',
       maxAge: 8 * 3600000,
     });
@@ -33,7 +35,7 @@ export class SessionController {
     res.clearCookie(this.access.cookieName, {
       path: '/v1',
       httpOnly: true,
-      sameSite: 'strict',
+      sameSite: this.cookieSameSite,
       secure: process.env.NODE_ENV === 'production',
     });
     return { ok: true };
