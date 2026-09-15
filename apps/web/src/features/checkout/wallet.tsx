@@ -13,6 +13,7 @@ import { baseSepolia, berachain } from 'viem/chains';
 import { getPaymentAsset } from '@chainpay/shared';
 import { useAccount, useConnect, useSwitchChain } from 'wagmi';
 import type { CheckoutSnapshot, CheckoutWallet } from './contracts';
+import { apiUrl } from '../api-origin';
 
 export const CHECKOUT_CHAIN_ID = baseSepolia.id;
 export const CHECKOUT_USDC: Address =
@@ -55,11 +56,11 @@ async function postCheckout<T>(
   body: unknown,
 ): Promise<T> {
   const response = await fetch(
-    `/v1/checkout/${encodeURIComponent(token)}/${endpoint}`,
+    apiUrl(`checkout/${encodeURIComponent(token)}/${endpoint}`),
     {
       method: 'POST',
       signal: AbortSignal.timeout(20_000),
-      credentials: 'same-origin',
+      credentials: 'include',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(body),
     },

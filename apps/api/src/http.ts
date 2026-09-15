@@ -31,6 +31,10 @@ class SafeErrors implements ExceptionFilter {
 }
 export function configureHttp(app: INestApplication) {
   app.setGlobalPrefix('v1');
+  app.enableCors({
+    origin: process.env.MERCHANT_ORIGIN,
+    credentials: true,
+  });
   app.use((_req: Request, res: Response, next: NextFunction) => {
     res.setHeader('X-Request-Id', randomUUID());
     res.setHeader('Cache-Control', 'no-store');

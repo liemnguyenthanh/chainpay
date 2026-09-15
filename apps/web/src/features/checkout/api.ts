@@ -1,5 +1,6 @@
 import type { Hash } from 'viem';
 import type { CheckoutSnapshot } from './contracts';
+import { apiUrl } from '../api-origin';
 
 export class CheckoutApiError extends Error {
   constructor(
@@ -16,10 +17,10 @@ export async function checkoutRequest<T>(
   body?: unknown,
 ): Promise<T> {
   const response = await fetch(
-    `/v1/checkout/${encodeURIComponent(token)}${path}`,
+    apiUrl(`checkout/${encodeURIComponent(token)}${path}`),
     {
       method: body === undefined ? 'GET' : 'POST',
-      credentials: 'same-origin',
+      credentials: 'include',
       cache: 'no-store',
       signal: AbortSignal.timeout(20_000),
       headers:

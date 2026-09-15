@@ -1,3 +1,5 @@
+import { apiUrl } from '../api-origin';
+
 export class MerchantApiError extends Error {
   constructor(
     public readonly status: number,
@@ -15,9 +17,9 @@ export async function merchantRequest<T>(
     signal?: AbortSignal;
   } = {},
 ): Promise<T> {
-  const response = await fetch(`/v1/${path}`, {
+  const response = await fetch(apiUrl(path), {
     method: options.method ?? 'GET',
-    credentials: 'same-origin',
+    credentials: 'include',
     cache: 'no-store',
     signal: options.signal
       ? AbortSignal.any([options.signal, AbortSignal.timeout(20000)])

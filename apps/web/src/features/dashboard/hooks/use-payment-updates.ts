@@ -2,6 +2,7 @@
 import { useEffect, useRef, useState, type RefObject } from 'react';
 import { useQueryClient } from '@tanstack/react-query';
 import { acceptPaymentEvent } from '../realtime';
+import { apiUrl } from '../../api-origin';
 export function usePaymentUpdates(
   merchant: { id: string },
   versions: RefObject<Map<string, number>>,
@@ -28,7 +29,9 @@ export function usePaymentUpdates(
     let stopped = false;
     const connect = () => {
       if (stopped) return;
-      stream = new EventSource('/v1/merchant/events');
+      stream = new EventSource(apiUrl('merchant/events'), {
+        withCredentials: true,
+      });
       stream.addEventListener('ready', () => {
         failures = 0;
         setStreamState('Live');
