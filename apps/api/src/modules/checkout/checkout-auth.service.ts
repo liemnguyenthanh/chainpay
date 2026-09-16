@@ -262,7 +262,7 @@ export class CheckoutAuthService {
       res.cookie(`chainpay_checkout_${p.id}`, session, {
         httpOnly: true,
         secure: true,
-        sameSite: 'strict',
+        sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'strict',
         path: `/v1/checkout/${token}`,
         maxAge: 3600000,
       });
