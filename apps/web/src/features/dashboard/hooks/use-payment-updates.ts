@@ -67,7 +67,7 @@ export function usePaymentUpdates(
       window.removeEventListener('focus', refresh);
       window.removeEventListener('online', refresh);
     };
-  }, [client, merchant.id]);
+  }, [client, merchant.id, versions]);
   useEffect(() => {
     if (!pending) return;
     const timer = window.setInterval(() => {

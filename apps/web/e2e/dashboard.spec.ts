@@ -171,7 +171,7 @@ for (const width of [375, 1440])
       .getByRole('button', { name: 'Connect wallet', exact: true })
       .click();
     await checkout
-      .getByRole('button', { name: 'Authenticate and pay USDC', exact: true })
+      .getByRole('button', { name: /^Pay [0-9.]+ USDC$/, exact: true })
       .click();
     await expect(
       checkout.getByText('Payment processing', { exact: true }),

@@ -34,7 +34,7 @@ test('native self-transfer is explained and blocked before any wallet signature'
   );
   await expect(
     page.getByRole('button', {
-      name: 'Authenticate and pay BERA',
+      name: 'Pay 1.25 BERA',
       exact: true,
     }),
   ).toBeDisabled();
@@ -61,7 +61,7 @@ test('native BERA shows mainnet terms and sends exact value with empty calldata 
   });
   await connect(page);
   await page
-    .getByRole('button', { name: 'Authenticate and pay BERA', exact: true })
+    .getByRole('button', { name: 'Pay 1.25 BERA', exact: true })
     .click();
   await expect(page.getByTestId('saved-hash')).toHaveText(f.hash);
   expect(f.sends()).toBe(1);
@@ -89,7 +89,7 @@ for (const receiverCode of [false, true])
     });
     await connect(page);
     await page
-      .getByRole('button', { name: 'Authenticate and pay BERA', exact: true })
+      .getByRole('button', { name: 'Pay 1.25 BERA', exact: true })
       .click();
     await expect(page.locator('main').getByRole('alert')).toContainText(
       receiverCode ? 'EOA receiver' : 'payment plus estimated gas',

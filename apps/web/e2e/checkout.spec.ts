@@ -17,7 +17,7 @@ async function connect(page: Page) {
 }
 async function pay(page: Page) {
   await page
-    .getByRole('button', { name: 'Authenticate and pay USDC', exact: true })
+    .getByRole('button', { name: 'Pay 1.25 USDC', exact: true })
     .click();
 }
 
@@ -48,7 +48,7 @@ test('HTTPS happy path: exact terms, scoped secure cookie, single transfer, back
   );
   await connect(page);
   await page
-    .getByRole('button', { name: 'Authenticate and pay USDC', exact: true })
+    .getByRole('button', { name: 'Pay 1.25 USDC', exact: true })
     .evaluate((button: HTMLButtonElement) => {
       button.click();
       button.click();
@@ -77,7 +77,7 @@ test('HTTPS happy path: exact terms, scoped secure cookie, single transfer, back
   ).toBeVisible();
   await expect(
     page.getByRole('button', {
-      name: 'Authenticate and pay USDC',
+      name: 'Pay 1.25 USDC',
       exact: true,
     }),
   ).toHaveCount(0);
@@ -95,7 +95,7 @@ test('wrong chain requires switch; wallet rejection clears only rejected approva
   await connect(page);
   await expect(
     page.getByRole('button', {
-      name: 'Authenticate and pay USDC',
+      name: 'Pay 1.25 USDC',
       exact: true,
     }),
   ).toHaveCount(0);
@@ -155,7 +155,7 @@ test('API failure after broadcast: persisted hash, reload and expired session re
   await expect(page.getByTestId('saved-hash')).toHaveText(f.hash);
   await expect(
     page.getByRole('button', {
-      name: 'Authenticate and pay USDC',
+      name: 'Pay 1.25 USDC',
       exact: true,
     }),
   ).toHaveCount(0);
@@ -178,7 +178,7 @@ test('API failure after broadcast: persisted hash, reload and expired session re
   ).toBeVisible();
   await expect(
     page.getByRole('button', {
-      name: 'Authenticate and pay USDC',
+      name: 'Pay 1.25 USDC',
       exact: true,
     }),
   ).toHaveCount(0);
@@ -197,7 +197,7 @@ test('ambiguous wallet broadcast never repeats and requires wallet history hash'
   await page.reload();
   await expect(
     page.getByRole('button', {
-      name: 'Authenticate and pay USDC',
+      name: 'Pay 1.25 USDC',
       exact: true,
     }),
   ).toHaveCount(0);

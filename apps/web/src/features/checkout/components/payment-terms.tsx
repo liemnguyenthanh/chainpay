@@ -10,44 +10,51 @@ export function PaymentTerms({
 }) {
   const asset = getPaymentAsset(snapshot.chainId);
   return (
-    <section className="checkout-card">
+    <section
+      className="checkout-card checkout-summary"
+      aria-label="Payment details"
+    >
       <p className="eyebrow">DIRECT WALLET PAYMENT</p>
       <h1>
         {formatUnits(BigInt(snapshot.amountBaseUnits), snapshot.tokenDecimals)}{' '}
         <span>{snapshot.token}</span>
       </h1>
-      <p className="checkout-muted">
-        Review the destination and network before approving in your wallet.
+      <p className="checkout-network">
+        {supported && asset ? asset.name : 'Unsupported network'}
       </p>
-      <dl className="checkout-details">
-        <dt>Network</dt>
-        <dd>
-          {supported && asset ? asset.name : 'Unsupported network'} ·{' '}
-          {snapshot.chainId}
-        </dd>
-        <dt>{asset?.kind === 'native' ? 'Asset' : 'Token contract'}</dt>
-        <dd>
-          <code>
-            {asset?.kind === 'native'
-              ? 'Native BERA (no token contract)'
-              : snapshot.tokenAddress}
-          </code>
-        </dd>
-        <dt>Receiver</dt>
+      <dl className="checkout-details checkout-recipient">
+        <dt>Pay to</dt>
         <dd>
           <code>{snapshot.receiverAddress}</code>
         </dd>
-        <dt>Payment ID</dt>
-        <dd>
-          <code>{snapshot.id}</code>
-        </dd>
       </dl>
-      <p className="checkout-note">
-        {snapshot.token} is transferred directly to the receiver. This checkout
-        never holds your funds.{' '}
+      <details className="checkout-disclosure">
+        <summary>Payment details</summary>
+        <dl className="checkout-details">
+          <dt>Network ID</dt>
+          <dd>{snapshot.chainId}</dd>
+          <dt>{asset?.kind === 'native' ? 'Asset' : 'Token contract'}</dt>
+          <dd>
+            <code>
+              {asset?.kind === 'native'
+                ? 'Native BERA (no token contract)'
+                : snapshot.tokenAddress}
+            </code>
+          </dd>
+          <dt>Payment ID</dt>
+          <dd>
+            <code>{snapshot.id}</code>
+          </dd>
+        </dl>
+      </details>
+      <p
+        className={`checkout-note ${asset && !asset.testnet ? 'checkout-mainnet' : ''}`}
+      >
         {asset?.testnet
-          ? 'Testnet tokens have no monetary value.'
-          : 'Berachain MAINNET: this sends real BERA and spends real network fees. Review the exact amount and receiver before signing.'}
+          ? 'Testnet payment · Use test tokens only. You also need ETH for network fees.'
+          : asset
+            ? 'Real funds · This payment sends BERA on Berachain mainnet. Network fees are added by your wallet.'
+            : 'This network is not supported. Check the payment link with the merchant.'}
       </p>
     </section>
   );

@@ -13,6 +13,7 @@ export function CheckoutPage({ token }: { token: string }) {
   const {
     wallet,
     busy,
+    phase,
     message,
     recovery,
     storageReady,
@@ -29,21 +30,28 @@ export function CheckoutPage({ token }: { token: string }) {
   if (!snapshot)
     return (
       <main className="checkout-shell">
-        <h1>ChainPay checkout</h1>
-        <p role="status">
-          {query.isPending ? 'Loading checkout…' : 'Checkout is unavailable.'}
-        </p>
-        {query.error && <p role="alert">{query.error.message}</p>}
-        <button
-          onClick={() =>
-            void run(async () => {
-              await refresh();
-            })
-          }
-          disabled={busy}
-        >
-          Refresh status
-        </button>
+        <section className="checkout-card checkout-unavailable">
+          <p className="eyebrow">CHAINPAY CHECKOUT</p>
+          <h1>
+            {query.isPending
+              ? 'Getting your payment ready'
+              : 'Unable to load payment'}
+          </h1>
+          <p role="status">
+            {query.isPending ? 'Loading checkout…' : 'Checkout is unavailable.'}
+          </p>
+          {query.error && <p role="alert">{query.error.message}</p>}
+          <button
+            onClick={() =>
+              void run(async () => {
+                await refresh();
+              })
+            }
+            disabled={busy || query.isFetching}
+          >
+            Refresh status
+          </button>
+        </section>
       </main>
     );
   const confirmed = snapshot.status === 'CONFIRMED';
@@ -58,6 +66,15 @@ export function CheckoutPage({ token }: { token: string }) {
     asset.token === snapshot.token &&
     asset.decimals === snapshot.tokenDecimals &&
     asset.tokenAddress.toLowerCase() === snapshot.tokenAddress.toLowerCase();
+  const currentStep = confirmed
+    ? 4
+    : processing || recovery?.hash || phase === 'confirm'
+      ? 3
+      : phase === 'send' || !!recovery
+        ? 2
+        : wallet.connected
+          ? 1
+          : 0;
   return (
     <main className="checkout-shell">
       <header className="checkout-header">
@@ -65,15 +82,46 @@ export function CheckoutPage({ token }: { token: string }) {
           ChainPay <span className="brand-suffix">Mini</span>
         </Link>
         <span className="environment">
-          {asset?.testnet ? 'Testnet checkout' : 'MAINNET · Real BERA'}
+          {!asset
+            ? 'Unsupported network'
+            : asset.testnet
+              ? 'Testnet checkout'
+              : 'MAINNET · Real BERA'}
         </span>
       </header>
+      <ol className="checkout-steps" aria-label="Payment progress">
+        {[
+          'Connect wallet',
+          'Verify wallet',
+          `Send ${snapshot.token}`,
+          'Confirm payment',
+        ].map((label, index) => (
+          <li
+            key={label}
+            aria-current={index === currentStep ? 'step' : undefined}
+            className={index < currentStep ? 'is-complete' : ''}
+          >
+            <span aria-hidden="true">
+              {index < currentStep ? '✓' : index + 1}
+            </span>
+            {label}
+          </li>
+        ))}
+      </ol>
       <div className="checkout-grid">
         <PaymentTerms snapshot={snapshot} supported={supported} />
         <section className="checkout-card" aria-label="Payment actions">
-          <h2>Payment status</h2>
+          <h2>
+            {confirmed
+              ? 'You’re all set'
+              : processing
+                ? 'Confirming your payment'
+                : recovery
+                  ? 'Continue your payment'
+                  : 'Complete your payment'}
+          </h2>
           <p
-            className={`checkout-status ${confirmed ? 'is-confirmed' : ''}`}
+            className={`checkout-status ${confirmed ? 'is-confirmed' : review ? 'is-review' : ''}`}
             role="status"
           >
             {confirmed
@@ -86,21 +134,22 @@ export function CheckoutPage({ token }: { token: string }) {
           </p>
           {(processing || review) && (
             <p>
-              Server verification is{' '}
-              {review ? 'awaiting operator review' : 'in progress'}. Your
-              payment is not marked failed. Do not send another transfer.
+              {review
+                ? 'Verification is taking longer than expected. Contact the merchant if you need help.'
+                : 'Your transaction is being checked on the network. You can leave this page and return using the same link.'}{' '}
+              Do not send another transfer.
             </p>
           )}
           {confirmed && (
             <p>
-              The backend has confirmed this payment. No further transfer is
-              needed.
+              Your payment has been confirmed. No further transfer is needed.
             </p>
           )}
-          {snapshot.attempt && !confirmed && (
-            <p className="checkout-muted">
-              Attempt: {snapshot.attempt.status}
-              {snapshot.attempt.code ? ` (${snapshot.attempt.code})` : ''}
+          {snapshot.attempt?.status === 'REJECTED' && !confirmed && (
+            <p className="checkout-note">
+              The previous transaction did not match this payment. Check its
+              details in your wallet before trying again. Funds already sent are
+              not automatically returned.
             </p>
           )}
           {query.error && (
@@ -112,27 +161,23 @@ export function CheckoutPage({ token }: { token: string }) {
           {pollingPaused && (
             <p>Automatic status checks paused. Refresh to check again.</p>
           )}
-          <button
-            className="secondary"
-            disabled={busy || query.isFetching}
-            onClick={() =>
-              void run(async () => {
-                await refresh();
-              })
-            }
-          >
-            Refresh status
-          </button>
           {!confirmed && (
-            <>
-              <hr />
+            <details
+              className="checkout-wallet-panel"
+              open={!processing || !!recovery}
+            >
+              <summary hidden={!processing}>
+                Need to recover a transfer?
+              </summary>
               <p className="checkout-muted">
                 {wallet.address ? (
                   <>
                     Wallet <code>{wallet.address}</code>
                   </>
+                ) : processing ? (
+                  'Connect the original payer wallet only if you need to recover a transaction.'
                 ) : (
-                  'Connect an EOA wallet to continue.'
+                  'Connect your wallet to pay directly to the receiver.'
                 )}
               </p>
               {!wallet.connected ? (
@@ -162,6 +207,11 @@ export function CheckoutPage({ token }: { token: string }) {
                           for the different wallet.
                         </p>
                       )}
+                      <p className="checkout-muted">
+                        First, sign a message to verify wallet ownership — this
+                        does not transfer funds. Then review and approve the
+                        payment in your wallet.
+                      </p>
                       <button
                         disabled={
                           busy ||
@@ -173,8 +223,12 @@ export function CheckoutPage({ token }: { token: string }) {
                         onClick={() => void run(send)}
                       >
                         {busy
-                          ? 'Waiting for wallet / server…'
-                          : `Authenticate and pay ${snapshot.token}`}
+                          ? phase === 'verify'
+                            ? 'Verify ownership in your wallet…'
+                            : phase === 'send'
+                              ? 'Approve payment in your wallet…'
+                              : 'Checking payment…'
+                          : `Pay ${formatUnits(BigInt(snapshot.amountBaseUnits), snapshot.tokenDecimals)} ${snapshot.token}`}
                       </button>
                     </>
                   )}
@@ -211,8 +265,15 @@ export function CheckoutPage({ token }: { token: string }) {
                 <p aria-label="Wallet balances">{balance.value}</p>
               )}
               {(recovery || wallet.connected) && (
-                <div className="checkout-recovery">
-                  <h3>Recover your transfer</h3>
+                <details
+                  className="checkout-recovery"
+                  open={recovery || processing ? true : undefined}
+                >
+                  <summary>
+                    {recovery || processing
+                      ? 'Recover your transfer'
+                      : 'Already paid? Recover a transfer'}
+                  </summary>
                   <p>
                     {recovery?.hash
                       ? 'Transaction hash saved. Retry submits this same hash only; it never sends funds again.'
@@ -283,7 +344,7 @@ export function CheckoutPage({ token }: { token: string }) {
                       </button>
                     </>
                   )}
-                </div>
+                </details>
               )}
               {!recovery && processing && (
                 <p>
@@ -291,8 +352,19 @@ export function CheckoutPage({ token }: { token: string }) {
                   hash. Contact the merchant if verification needs review.
                 </p>
               )}
-            </>
+            </details>
           )}
+          <button
+            className="secondary checkout-refresh"
+            disabled={busy || query.isFetching}
+            onClick={() =>
+              void run(async () => {
+                await refresh();
+              })
+            }
+          >
+            Refresh status
+          </button>
           {message && (
             <p className="checkout-message" role="alert">
               {message}
@@ -304,8 +376,8 @@ export function CheckoutPage({ token }: { token: string }) {
         </section>
       </div>
       <p className="checkout-footer">
-        Settlement status comes from the server. Wallet approval and a
-        transaction hash are not proof of payment.
+        Payments go directly to the receiver. ChainPay never holds your funds. A
+        transaction is complete only when this page shows Payment confirmed.
       </p>
     </main>
   );

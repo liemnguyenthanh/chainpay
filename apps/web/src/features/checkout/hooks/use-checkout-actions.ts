@@ -23,6 +23,9 @@ export function useCheckoutActions(
   const wallet = useCheckoutWallet();
   const running = useRef(false);
   const [busy, setBusy] = useState(false);
+  const [phase, setPhase] = useState<'idle' | 'verify' | 'send' | 'confirm'>(
+    'idle',
+  );
   const [message, setMessage] = useState('');
   const [recovery, setRecovery] = useState<RecoveryRecord | null>(null);
   const [storageReady, setStorageReady] = useState(false);
@@ -75,6 +78,7 @@ export function useCheckoutActions(
     } finally {
       running.current = false;
       setBusy(false);
+      setPhase('idle');
     }
   }
   async function submit(record: RecoveryRecord) {
@@ -130,7 +134,9 @@ export function useCheckoutActions(
         throw new Error(
           'This payment is already being processed or confirmed. Do not send again.',
         );
+      setPhase('verify');
       await wallet.authenticate(token, latest);
+      setPhase('send');
       const funds = await wallet.checkBalance(latest);
       rememberBalance(
         `${formatUnits(funds.assetBalance, latest.tokenDecimals)} ${latest.token} · ${formatUnits(funds.native, 18)} ${getPaymentAsset(latest.chainId)?.nativeSymbol}`,
@@ -176,12 +182,14 @@ export function useCheckoutActions(
           `Transaction hash: ${hash}. Browser storage failed. Copy this hash now and use transaction recovery; do not send again.`,
         );
       }
+      setPhase('confirm');
       await submit(received);
     });
   }
   return {
     wallet,
     busy,
+    phase,
     message,
     recovery,
     storageReady,
